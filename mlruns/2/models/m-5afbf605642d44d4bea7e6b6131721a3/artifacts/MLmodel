@@ -1,0 +1,23 @@
+artifact_path: file:///C:/Users/shiva/OneDrive/Documents/BIRD_Classification/mlruns/2/models/m-5afbf605642d44d4bea7e6b6131721a3/artifacts
+flavors:
+  python_function:
+    config:
+      device: null
+    data: data
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pytorch
+    pickle_module_name: mlflow.pytorch.pickle_module
+    python_version: 3.11.9
+  pytorch:
+    code: null
+    model_data: data
+    pytorch_version: 2.10.0+cpu
+mlflow_version: 3.9.0
+model_id: m-5afbf605642d44d4bea7e6b6131721a3
+model_size_bytes: 8491649
+model_uuid: m-5afbf605642d44d4bea7e6b6131721a3
+prompts: null
+run_id: 8c9cea92d32248869bd7fd4f36496773
+utc_time_created: '2026-02-17 05:41:46.439986'
