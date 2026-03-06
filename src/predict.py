@@ -10,11 +10,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.config import Config
 from src.model import BasicCNN
+from src.attribute import create_and_save_heatmap
 import matplotlib.pyplot as plt
 import numpy as np
-
-# ---------------- SETTINGS ----------------
-SAVE_DIR = "prediction_filters"
+import cv2
 
 # ---------------- FEATURE MAP HOOKS ----------------
 feature_maps = {}
@@ -24,7 +23,7 @@ def get_activation(name):
         feature_maps[name] = output.detach()
     return hook
 
-def plot_feature_maps(fmap, layer_name):
+def plot_feature_maps(fmap, layer_name, output_dir):
     fmap = fmap.squeeze(0)
     num_filters = fmap.shape[0]
 
@@ -42,13 +41,13 @@ def plot_feature_maps(fmap, layer_name):
 
     plt.tight_layout()
     sanitized_name = layer_name.split()[0].lower() # e.g. "Conv1" -> "conv1"
-    plt.savefig(f"{SAVE_DIR}/{sanitized_name}.png")
+    plt.savefig(os.path.join(output_dir, f"{sanitized_name}.png"))
     plt.close()
 
 def predict(image_path):
     # Check if model exists
-    if not os.path.exists("model.pth"):
-        print("Error: model.pth not found. Please train the model first.")
+    if not os.path.exists(Config.MODEL_PATH):
+        print(f"Error: model.pth not found at {Config.MODEL_PATH}. Please train the model first.")
         return
 
     # Check if image exists
@@ -59,7 +58,7 @@ def predict(image_path):
     # Load model
     device = Config.DEVICE
     model = BasicCNN().to(device)
-    model.load_state_dict(torch.load("model.pth", map_location=device))
+    model.load_state_dict(torch.load(Config.MODEL_PATH, map_location=device))
     model.eval()
 
     # Register hooks (assuming Sequential layout)
@@ -89,33 +88,32 @@ def predict(image_path):
         output = model(image_tensor)
         probability = torch.sigmoid(output).item()
         
-        # Determine class based on threshold (assuming 0.5)
-        # Assuming 1 is "Bird" and 0 is "No Bird" or vice versa depending on dataset
-        # Usually folder names dictate class indices. 
-        # By default ImageFolder sorts classes alphabetically.
-        # If classes are ["Bird", "NoBird"], then Bird=0, NoBird=1 ? 
-        # We need to verify class mapping. 
-        # But for now let's just print probability and a generic prediction.
-        
         prediction = "Bird" if probability > 0.5 else "No Bird" 
-        # Wait, usually 1 is the positive class. If "Bird" and "No Bird" were folders..
-        # Let's check class names in data.py or list folders.
-        # Assuming binary classification.
         
         print(f"Prediction for {image_path}:")
         print(f"Probability: {probability:.4f}")
         print(f"Class: {prediction} (Prob > 0.5)")
 
-        # Visualize feature maps
-        os.makedirs(SAVE_DIR, exist_ok=True)
-        print(f"\nSaving feature maps to {os.path.abspath(SAVE_DIR)}...")
-        
-        if "conv1" in feature_maps:
-            plot_feature_maps(feature_maps["conv1"], "Conv1 (16 filters)")
-        if "conv2" in feature_maps:
-            plot_feature_maps(feature_maps["conv2"], "Conv2 (32 filters)")
-        if "conv3" in feature_maps:
-            plot_feature_maps(feature_maps["conv3"], "Conv3 (64 filters)")
+    # Save feature maps
+    os.makedirs(Config.PREDICTION_DIR, exist_ok=True)
+    print(f"\nSaving visualizations to {Config.PREDICTION_DIR}...")
+    
+    if "conv1" in feature_maps:
+        plot_feature_maps(feature_maps["conv1"], "Conv1", Config.PREDICTION_DIR)
+    if "conv2" in feature_maps:
+        plot_feature_maps(feature_maps["conv2"], "Conv2", Config.PREDICTION_DIR)
+    if "conv3" in feature_maps:
+        plot_feature_maps(feature_maps["conv3"], "Conv3", Config.PREDICTION_DIR)
+
+    # Generate Grad-CAM heatmap
+    print(f"Generating heatmap...")
+    try:
+        heatmap_path = os.path.join(Config.PREDICTION_DIR, "heatmap.png")
+        target_layer = model.features[6]
+        create_and_save_heatmap(model, target_layer, image_tensor, image_path, heatmap_path)
+        print(f"Heatmap saved to {heatmap_path}")
+    except Exception as e:
+        print(f"Warning: Failed to generate heatmap: {e}")
 
 
 if __name__ == "__main__":

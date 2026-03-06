@@ -47,21 +47,15 @@ def generate_failures():
         print("Warning: classes attribute not found on dataset, using default names.")
 
     # Check for model existence
-    model_path = "model.pth"
-    if not os.path.exists(model_path):
-        # Try finding it in project root
-        potential_path = os.path.join(project_root, "model.pth")
-        if os.path.exists(potential_path):
-            model_path = potential_path
-        else:
-            print("Error: model.pth not found in current directory or project root. Please train the model first.")
-            return
+    if not os.path.exists(Config.MODEL_PATH):
+        print(f"Error: model.pth not found at {Config.MODEL_PATH}. Please train the model first.")
+        return
 
     # Initialize model
     device = Config.DEVICE
     model = BasicCNN().to(device)
     try:
-        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.load_state_dict(torch.load(Config.MODEL_PATH, map_location=device))
     except Exception as e:
         print(f"Error loading model: {e}")
         return

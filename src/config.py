@@ -19,5 +19,14 @@ class Config:
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
     EXPERIMENT_NAME = "Bird_vs_NoBird_Baseline"
-    MLFLOW_TRACKING_URI = "sqlite:///" + os.path.join(PROJECT_ROOT, "mlflow.db")
+    
+    # Paths for persistence
+    MODEL_PATH = os.path.join(PROJECT_ROOT, "model.pth")
+    MLFLOW_DB_PATH = os.path.join(PROJECT_ROOT, "mlflow.db")
+    MLFLOW_TRACKING_URI = f"sqlite:///{MLFLOW_DB_PATH}"
     MLFLOW_ARTIFACT_ROOT = os.path.join(PROJECT_ROOT, "mlruns")
+
+    # Output directories
+    PREDICTION_DIR = os.path.join(PROJECT_ROOT, "prediction_filters")
+    FAILURE_DIR = os.path.join(PROJECT_ROOT, "failures")
+    STRESS_TEST_DIR = os.path.join(PROJECT_ROOT, "filter_maps")

@@ -13,7 +13,6 @@ from src.model import BasicCNN
 from src.config import Config
 
 # ---------------- SETTINGS ----------------
-MODEL_PATH = "model.pth"
 SAVE_DIR = "filter_maps"
 
 IMAGE_PATH = None
@@ -22,15 +21,10 @@ if len(sys.argv) > 1:
 else:
     print("Usage: python stress_test.py <image_path>")
     sys.exit(1)
-
 # ---------------- PATH CHECKS ----------------
-if not os.path.exists(MODEL_PATH):
-    # Try finding it in project root if running from src
-    if os.path.exists(os.path.join("..", MODEL_PATH)):
-        MODEL_PATH = os.path.join("..", MODEL_PATH)
-    else:
-        print("Error: model.pth not found. Train model first.")
-        sys.exit(1)
+if not os.path.exists(Config.MODEL_PATH):
+    print(f"Error: model.pth not found at {Config.MODEL_PATH}. Train model first.")
+    sys.exit(1)
 
 if not os.path.exists(IMAGE_PATH):
     print(f"Error: Image not found → {IMAGE_PATH}")
@@ -41,10 +35,10 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 device = Config.DEVICE
 
 # ---------------- LOAD MODEL ----------------
-print(f"Loading model from {MODEL_PATH}...")
+print(f"Loading model from {Config.MODEL_PATH}...")
 model = BasicCNN().to(device)
 try:
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    model.load_state_dict(torch.load(Config.MODEL_PATH, map_location=device))
 except Exception as e:
     print(f"Error loading model: {e}")
     sys.exit(1)

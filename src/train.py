@@ -76,7 +76,7 @@ def train_model():
         mlflow.pytorch.log_model(model, "model")
         
         # Save model locally for easy access by predict.py and evaluate.py
-        torch.save(model.state_dict(), "model.pth")
+        torch.save(model.state_dict(), Config.MODEL_PATH)
 
 
     print("Training completed.")

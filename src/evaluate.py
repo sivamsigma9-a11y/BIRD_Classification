@@ -23,17 +23,11 @@ def evaluate_model():
     model = BasicCNN().to(Config.DEVICE)
     
     # Check for model existence
-    model_path = "model.pth"
-    if not os.path.exists(model_path):
-        # Try finding it in project root
-        potential_path = os.path.join(project_root, "model.pth")
-        if os.path.exists(potential_path):
-            model_path = potential_path
-        else:
-            print("Error: model.pth not found in current directory or project root. Please train the model first.")
-            return
+    if not os.path.exists(Config.MODEL_PATH):
+        print(f"Error: model.pth not found at {Config.MODEL_PATH}. Please train the model first.")
+        return
 
-    model.load_state_dict(torch.load(model_path, map_location=Config.DEVICE))
+    model.load_state_dict(torch.load(Config.MODEL_PATH, map_location=Config.DEVICE))
     model.eval()
 
     correct = 0
@@ -50,7 +44,6 @@ def evaluate_model():
             correct += (predictions.squeeze() == labels).sum().item()
             total += labels.size(0)
 
-    accuracy = correct / total
     accuracy = correct / total
     print(f"Test Accuracy: {accuracy:.4f}")
 
